@@ -1,0 +1,45 @@
+name: Render BPL Intro
+
+on:
+  workflow_dispatch:
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Render animation
+        run: node render.js
+
+      - name: Install FFmpeg
+        run: sudo apt-get update && sudo apt-get install -y ffmpeg
+
+      - name: Create MP4
+        run: |
+          ffmpeg -y \
+            -f lavfi \
+            -i color=black:s=1080x1920:r=30 \
+            -t 34.3 \
+            -c:v libx264 \
+            -pix_fmt yuv420p \
+            bpl-intro.mp4
+
+      - name: Upload MP4
+        uses: actions/upload-artifact@v4
+        with:
+          name: BPL-Intro-MP4
+          path: bpl-intro.mp4
