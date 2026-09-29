@@ -19,27 +19,31 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Install Playwright browser
+      - name: Install Playwright Chromium
         run: npx playwright install --with-deps chromium
 
-      - name: Render animation
+      - name: Render HTML animation
         run: node render.js
 
       - name: Install FFmpeg
-        run: sudo apt-get update && sudo apt-get install -y ffmpeg
-
-      - name: Create MP4
         run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg
+
+      - name: Convert video to MP4
+        run: |
+          mkdir -p final
           ffmpeg -y \
-            -f lavfi \
-            -i color=black:s=1080x1920:r=30 \
-            -t 34.3 \
+            -i video-output/*.webm \
             -c:v libx264 \
+            -preset medium \
+            -crf 18 \
             -pix_fmt yuv420p \
-            bpl-intro.mp4
+            -movflags +faststart \
+            final/BPL-Intro.mp4
 
       - name: Upload MP4
         uses: actions/upload-artifact@v4
         with:
           name: BPL-Intro-MP4
-          path: bpl-intro.mp4
+          path: final/BPL-Intro.mp4
